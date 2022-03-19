@@ -1,0 +1,4 @@
+- **number_of_definitions**: Maximum number of definitions to fetch. 
+- **number_of_examples**: Maximum number of examples to fetch.
+- **shortcut**: Editor shortcut.
+- **highlight_color**: Highlight color of words of the queried word/expression in example sentences. Leave empty (`""`) to keep the color used in the site.

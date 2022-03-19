@@ -1,0 +1,4 @@
+venv/
+ankiprofile/
+src/form.py
+*.ankiaddon
