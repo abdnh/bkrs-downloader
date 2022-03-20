@@ -17,7 +17,8 @@ $(PACKAGE_NAME).ankiaddon: src/*
 
 # Install in test profile
 install: zip
-	unzip -o $(PACKAGE_NAME).ankiaddon -d ankiprofile/addons21/$(PACKAGE_NAME)
+	rm -r ankiprofile/addons21/$(PACKAGE_NAME)
+	cp -r src/. ankiprofile/addons21/$(PACKAGE_NAME)
 
 format:
 	python -m black src/
