@@ -17,8 +17,10 @@ from aqt.operations import CollectionOp
 from .consts import *
 from .dialog import BkrsDownloaderDialog
 from .bkrs_downloader import BkrsDownloader
+from .yellowbridge_downloader import YellowBridgeDownloader
 
-downloader = BkrsDownloader()
+bkrs_downloader = BkrsDownloader()
+yellowbridge_downloader = YellowBridgeDownloader()
 
 
 def on_bulk_updated_notes(browser: Browser, errors: List[str], updated_count: int):
@@ -34,7 +36,9 @@ def on_bulk_updated_notes(browser: Browser, errors: List[str], updated_count: in
 
 def on_browser_action_triggered(browser: Browser) -> None:
     notes = [browser.mw.col.get_note(nid) for nid in browser.selected_notes()]
-    dialog = BkrsDownloaderDialog(browser.mw, browser, downloader, notes)
+    dialog = BkrsDownloaderDialog(
+        browser.mw, browser, bkrs_downloader, yellowbridge_downloader, notes
+    )
     if dialog.exec():
         updated_notes = dialog.updated_notes
         errors = dialog.errors
@@ -59,7 +63,7 @@ def on_editor_button_clicked(editor: Editor, highlight_color: str) -> None:
         if not text:
             return
         try:
-            examples = downloader.get_examples(text, highlight_color)
+            examples = bkrs_downloader.get_examples(text, highlight_color)
         except Exception as exc:
             showWarning(str(exc), title=ADDON_NAME)
             return

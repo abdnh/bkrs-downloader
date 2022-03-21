@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>460</width>
+    <height>316</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,12 +78,12 @@
      <item row="4" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Sentence Field</string>
+        <string>Example Field</string>
        </property>
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QComboBox" name="sentenceFieldComboBox"/>
+      <widget class="QComboBox" name="exampleFieldComboBox"/>
      </item>
      <item row="5" column="1">
       <widget class="QSpinBox" name="numberOfExamplesSpinBox">
@@ -92,7 +92,7 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="1">
+     <item row="8" column="1">
       <widget class="QPushButton" name="addButton">
        <property name="text">
         <string>Add</string>
@@ -106,6 +106,26 @@
        </property>
       </widget>
      </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Head Word Field</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QComboBox" name="headWordFieldComboBox"/>
+     </item>
+     <item row="7" column="1">
+      <widget class="QComboBox" name="tailWordFieldComboBox"/>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Tail Word Field</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>
@@ -115,7 +135,7 @@
   <tabstop>definitionFieldComboBox</tabstop>
   <tabstop>numberOfDefinitionsCheckBox</tabstop>
   <tabstop>numberOfDefinitionsSpinBox</tabstop>
-  <tabstop>sentenceFieldComboBox</tabstop>
+  <tabstop>exampleFieldComboBox</tabstop>
   <tabstop>numberOfExamplesCheckBox</tabstop>
   <tabstop>numberOfExamplesSpinBox</tabstop>
   <tabstop>addButton</tabstop>

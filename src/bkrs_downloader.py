@@ -1,23 +1,11 @@
 from typing import List, Optional
-import requests
-import functools
-import bs4
-from bs4 import BeautifulSoup
+
+from .downloader import Downloader
 
 
-class BkrsDownloader:
-    QUERY_URL = "https://bkrs.info/slovo.php?ch={}"
-
-    def __init__(self):
-        pass
-
-    @functools.lru_cache
-    def _get_word_soup(self, word: str) -> BeautifulSoup:
-        req = requests.get(
-            self.QUERY_URL.format(word), headers={"User-Agent": "Mozilla/5.0"}
-        )
-        soup = BeautifulSoup(req.text, "html.parser")
-        return soup
+class BkrsDownloader(Downloader):
+    BASE_URL = "https://bkrs.info"
+    QUERY_URL = f"{BASE_URL}/slovo.php?ch={{}}"
 
     def get_definitions(self, word: str) -> List[str]:
         soup = self._get_word_soup(word)
@@ -68,9 +56,8 @@ class BkrsDownloader:
 
 if __name__ == "__main__":
     downloader = BkrsDownloader()
-    words = ["没的说", "不巧的", "不良少年", "少年"]
+    words = ["没的说", "不巧的", "不良少年", "少年", "鬼地方"]
     for word in words:
-        # print(downloader.get_definitions(word))
         for definition in downloader.get_definitions(word):
             print(definition)
         for example in downloader.get_examples(word):

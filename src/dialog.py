@@ -9,26 +9,35 @@ from aqt.operations import QueryOp
 from .form import Ui_Dialog
 from .consts import *
 from .bkrs_downloader import BkrsDownloader
+from .yellowbridge_downloader import YellowBridgeDownloader
 
 PROGRESS_LABEL = "Updated {count} out of {total} note(s)"
 
 
 class BkrsDownloaderDialog(QDialog):
     def __init__(
-        self, mw: AnkiQt, parent, downloader: BkrsDownloader, notes: List[Note]
+        self,
+        mw: AnkiQt,
+        parent,
+        bkrs_downloader: BkrsDownloader,
+        yellowbridge_downloader: YellowBridgeDownloader,
+        notes: List[Note],
     ):
         super().__init__(parent)
         self.form = Ui_Dialog()
         self.form.setupUi(self)
         self.mw = mw
-        self.downloader = downloader
+        self.bkrs_downloader = bkrs_downloader
+        self.yellowbridge_downloader = yellowbridge_downloader
         self.config = mw.addonManager.getConfig(__name__)
         self.highlight_color = self.config["highlight_color"].strip()
         self.notes = notes
         self.combos = [
             self.form.wordFieldComboBox,
             self.form.definitionFieldComboBox,
-            self.form.sentenceFieldComboBox,
+            self.form.exampleFieldComboBox,
+            self.form.headWordFieldComboBox,
+            self.form.tailWordFieldComboBox,
         ]
         self.setWindowTitle(ADDON_NAME)
         self.form.icon.setPixmap(
@@ -109,7 +118,9 @@ class BkrsDownloaderDialog(QDialog):
             return
         word_field = self.form.wordFieldComboBox.currentText()
         definition_field_i = self.form.definitionFieldComboBox.currentIndex()
-        sentence_field_i = self.form.sentenceFieldComboBox.currentIndex()
+        example_field_i = self.form.exampleFieldComboBox.currentIndex()
+        headword_field_i = self.form.headWordFieldComboBox.currentIndex()
+        tailword_field_i = self.form.tailWordFieldComboBox.currentIndex()
 
         def on_success(ret):
             if len(self.updated_notes) > 0:
@@ -120,7 +131,11 @@ class BkrsDownloaderDialog(QDialog):
         op = QueryOp(
             parent=self,
             op=lambda col: self._fill_notes(
-                word_field, definition_field_i, sentence_field_i
+                word_field,
+                definition_field_i,
+                example_field_i,
+                headword_field_i,
+                tailword_field_i,
             ),
             success=on_success,
         )
@@ -128,12 +143,18 @@ class BkrsDownloaderDialog(QDialog):
             max=len(self.notes),
             label=PROGRESS_LABEL.format(count=0, total=len(self.notes)),
             parent=self,
-            immediate=True,
         )
         self.mw.progress.set_title(ADDON_NAME)
         op.run_in_background()
 
-    def _fill_notes(self, word_field, definition_field_i, sentence_field_i):
+    def _fill_notes(
+        self,
+        word_field,
+        definition_field_i,
+        example_field_i,
+        headword_field_i,
+        tailword_field_i,
+    ):
         self.errors = []
         self.updated_notes = []
         for note in self.notes:
@@ -144,9 +165,15 @@ class BkrsDownloaderDialog(QDialog):
                     definitions = self._get_definitions(word)
                     note[self.field_names[definition_field_i]] = definitions
                     need_updating = True
-                if sentence_field_i:
-                    sentences = self._get_sentences(word)
-                    note[self.field_names[sentence_field_i]] = sentences
+                if example_field_i:
+                    examples = self._get_examples(word)
+                    note[self.field_names[example_field_i]] = examples
+                    need_updating = True
+                if headword_field_i:
+                    note[self.field_names[headword_field_i]] = self._get_headwords(word)
+                    need_updating = True
+                if tailword_field_i:
+                    note[self.field_names[tailword_field_i]] = self._get_tailwords(word)
                     need_updating = True
             except Exception as exc:
                 self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
@@ -168,7 +195,7 @@ class BkrsDownloaderDialog(QDialog):
 
     def _get_definitions(self, word: str) -> str:
         field_contents = []
-        defs = self.downloader.get_definitions(word)
+        defs = self.bkrs_downloader.get_definitions(word)
         for definition in defs[
             : self.form.numberOfDefinitionsSpinBox.value()
             if self.form.numberOfDefinitionsCheckBox.isChecked()
@@ -177,9 +204,9 @@ class BkrsDownloaderDialog(QDialog):
             field_contents.append(definition)
         return "<br>".join(field_contents)
 
-    def _get_sentences(self, word: str) -> str:
+    def _get_examples(self, word: str) -> str:
         field_contents = []
-        examples = self.downloader.get_examples(word, self.highlight_color)
+        examples = self.bkrs_downloader.get_examples(word, self.highlight_color)
         for example in examples[
             : self.form.numberOfExamplesSpinBox.value()
             if self.form.numberOfExamplesCheckBox.isChecked()
@@ -187,3 +214,23 @@ class BkrsDownloaderDialog(QDialog):
         ]:
             field_contents.append(example)
         return "<br>".join(field_contents)
+
+    def _get_headwords(self, word: str) -> str:
+        field_contents = "<table><tbody>"
+        rows = self.yellowbridge_downloader.get_words_with_same_head(word)
+        if not rows:
+            return ""
+        for row in rows:
+            field_contents += row
+        field_contents += "</tbody></table>"
+        return field_contents
+
+    def _get_tailwords(self, word: str) -> str:
+        field_contents = "<table><tbody>"
+        rows = self.yellowbridge_downloader.get_words_with_same_tail(word)
+        if not rows:
+            return ""
+        for row in rows:
+            field_contents += row
+        field_contents += "</tbody></table>"
+        return field_contents
