@@ -85,20 +85,6 @@
      <item row="4" column="1">
       <widget class="QComboBox" name="exampleFieldComboBox"/>
      </item>
-     <item row="5" column="1">
-      <widget class="QSpinBox" name="numberOfExamplesSpinBox">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QPushButton" name="addButton">
-       <property name="text">
-        <string>Add</string>
-       </property>
-      </widget>
-     </item>
      <item row="5" column="0">
       <widget class="QCheckBox" name="numberOfExamplesCheckBox">
        <property name="text">
@@ -106,23 +92,27 @@
        </property>
       </widget>
      </item>
+     <item row="5" column="1">
+      <widget class="QSpinBox" name="numberOfExamplesSpinBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
      <item row="6" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Head Word Field</string>
+        <string>Head/Tail Word Field</string>
        </property>
       </widget>
      </item>
      <item row="6" column="1">
-      <widget class="QComboBox" name="headWordFieldComboBox"/>
+      <widget class="QComboBox" name="headTailWordFieldComboBox"/>
      </item>
      <item row="7" column="1">
-      <widget class="QComboBox" name="tailWordFieldComboBox"/>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_5">
+      <widget class="QPushButton" name="addButton">
        <property name="text">
-        <string>Tail Word Field</string>
+        <string>Add</string>
        </property>
       </widget>
      </item>
@@ -138,6 +128,7 @@
   <tabstop>exampleFieldComboBox</tabstop>
   <tabstop>numberOfExamplesCheckBox</tabstop>
   <tabstop>numberOfExamplesSpinBox</tabstop>
+  <tabstop>headTailWordFieldComboBox</tabstop>
   <tabstop>addButton</tabstop>
  </tabstops>
  <resources/>

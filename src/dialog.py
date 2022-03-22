@@ -36,8 +36,7 @@ class BkrsDownloaderDialog(QDialog):
             self.form.wordFieldComboBox,
             self.form.definitionFieldComboBox,
             self.form.exampleFieldComboBox,
-            self.form.headWordFieldComboBox,
-            self.form.tailWordFieldComboBox,
+            self.form.headTailWordFieldComboBox,
         ]
         self.setWindowTitle(ADDON_NAME)
         self.form.icon.setPixmap(
@@ -119,8 +118,7 @@ class BkrsDownloaderDialog(QDialog):
         word_field = self.form.wordFieldComboBox.currentText()
         definition_field_i = self.form.definitionFieldComboBox.currentIndex()
         example_field_i = self.form.exampleFieldComboBox.currentIndex()
-        headword_field_i = self.form.headWordFieldComboBox.currentIndex()
-        tailword_field_i = self.form.tailWordFieldComboBox.currentIndex()
+        head_tail_word_field_i = self.form.headTailWordFieldComboBox.currentIndex()
 
         def on_success(ret):
             if len(self.updated_notes) > 0:
@@ -134,8 +132,7 @@ class BkrsDownloaderDialog(QDialog):
                 word_field,
                 definition_field_i,
                 example_field_i,
-                headword_field_i,
-                tailword_field_i,
+                head_tail_word_field_i,
             ),
             success=on_success,
         )
@@ -143,6 +140,7 @@ class BkrsDownloaderDialog(QDialog):
             max=len(self.notes),
             label=PROGRESS_LABEL.format(count=0, total=len(self.notes)),
             parent=self,
+            immediate=True,
         )
         self.mw.progress.set_title(ADDON_NAME)
         op.run_in_background()
@@ -152,8 +150,7 @@ class BkrsDownloaderDialog(QDialog):
         word_field,
         definition_field_i,
         example_field_i,
-        headword_field_i,
-        tailword_field_i,
+        head_tail_word_field_i,
     ):
         self.errors = []
         self.updated_notes = []
@@ -169,11 +166,10 @@ class BkrsDownloaderDialog(QDialog):
                     examples = self._get_examples(word)
                     note[self.field_names[example_field_i]] = examples
                     need_updating = True
-                if headword_field_i:
-                    note[self.field_names[headword_field_i]] = self._get_headwords(word)
-                    need_updating = True
-                if tailword_field_i:
-                    note[self.field_names[tailword_field_i]] = self._get_tailwords(word)
+                if head_tail_word_field_i:
+                    note[
+                        self.field_names[head_tail_word_field_i]
+                    ] = self._get_head_tail_words(word)
                     need_updating = True
             except Exception as exc:
                 self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
@@ -215,22 +211,79 @@ class BkrsDownloaderDialog(QDialog):
             field_contents.append(example)
         return "<br>".join(field_contents)
 
-    def _get_headwords(self, word: str) -> str:
-        field_contents = "<table><tbody>"
-        rows = self.yellowbridge_downloader.get_words_with_same_head(word)
-        if not rows:
-            return ""
-        for row in rows:
-            field_contents += row
-        field_contents += "</tbody></table>"
-        return field_contents
+    # def _get_head_words(self, word: str) -> str:
+    #     return self.yellowbridge_downloader.get_words_with_same_head(word)
 
-    def _get_tailwords(self, word: str) -> str:
-        field_contents = "<table><tbody>"
-        rows = self.yellowbridge_downloader.get_words_with_same_tail(word)
-        if not rows:
+    # def _get_tail_words(self, word: str) -> str:
+    #     return self.yellowbridge_downloader.get_words_with_same_tail(word)
+
+    def _get_head_tail_words(self, word: str) -> str:
+        # <div style="width: 790px; margin: 5px auto;">
+        contents = '<div style="width: 790px; margin: 5px auto;">'
+        head = self.yellowbridge_downloader.get_words_with_same_head(word)
+        tail = self.yellowbridge_downloader.get_words_with_same_tail(word)
+        contents += head
+        contents += tail
+        contents += "</div>"
+        if not (head or tail):
             return ""
-        for row in rows:
-            field_contents += row
-        field_contents += "</tbody></table>"
-        return field_contents
+        # <style> doesn't work in latest versions
+        #         contents += """
+        #             <style>
+        #             #sameHead {
+        #   float: left;
+        #   width: 380px;
+        #   margin: 5px 0 0 5px;
+        # }
+
+        # table.grid {
+        #   border-style: none;
+        #   border-collapse: collapse;
+        #   background: white;
+        #   margin: 5px auto;
+        #   padding: 0;
+        # }
+
+        # TABLE {
+        #   border-spacing: 1px;
+        #   border-width: 1px;
+        # }
+
+        # #sameTail {
+        #   float: right;
+        #   width: 380px;
+        #   margin: 5px 5px 0 0;
+        # }
+
+        # TABLE.grid CAPTION {
+        #   font-size: 1.0;
+        #   font-weight: bold;
+        #   padding: 4px 5px 3px 5px;
+        #   color: #009;
+        #   background: #fc0;
+        #   border-style: none;
+        #   border-radius: 5px 5px 0 0;
+        # }
+        #             </style>
+        #         """
+        return contents
+
+    # def _get_head_words(self, word: str) -> str:
+    #     field_contents = "<table><tbody>"
+    #     rows = self.yellowbridge_downloader.get_words_with_same_head(word)
+    #     if not rows:
+    #         return ""
+    #     for row in rows:
+    #         field_contents += row
+    #     field_contents += "</tbody></table>"
+    #     return field_contents
+
+    # def _get_tail_words(self, word: str) -> str:
+    #     field_contents = "<table><tbody>"
+    #     rows = self.yellowbridge_downloader.get_words_with_same_tail(word)
+    #     if not rows:
+    #         return ""
+    #     for row in rows:
+    #         field_contents += row
+    #     field_contents += "</tbody></table>"
+    #     return field_contents
