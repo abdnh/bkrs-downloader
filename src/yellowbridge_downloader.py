@@ -26,6 +26,9 @@ class YellowBridgeDownloader(Downloader):
             caption[
                 "style"
             ] = "  font-size: 1.0; font-weight: bold; padding: 4px 5px 3px 5px; color: #009; background: #fc0; border-style: none; border-radius: 5px 5px 0 0;"
+        trs = table.find_all("tr")
+        for i in range(1, len(trs), 2):
+            trs[i]["style"] = "background: #f8f9f7;"
 
     def get_words_with_same_head(self, word: str) -> str:
         soup = self._get_word_soup(word)
