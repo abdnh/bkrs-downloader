@@ -23,15 +23,9 @@ bkrs_downloader = BkrsDownloader()
 yellowbridge_downloader = YellowBridgeDownloader()
 
 
-def on_bulk_updated_notes(browser: Browser, errors: List[str], updated_count: int):
-    # browser.mw.progress.finish()
-    msg = f"Updated {updated_count} note(s)."
-    if errors:
-        msg += " The following issues happened during the process:\n"
-        msg += "\n".join(errors)
-        showText(msg, parent=browser, title=ADDON_NAME)
-    else:
-        tooltip(msg, parent=browser)
+def on_bulk_updated_notes(browser: Browser, updated_count: int):
+    if updated_count:
+        tooltip(f"Updated {updated_count} note(s).", parent=browser)
 
 
 def on_browser_action_triggered(browser: Browser) -> None:
@@ -41,12 +35,11 @@ def on_browser_action_triggered(browser: Browser) -> None:
     )
     if dialog.exec():
         updated_notes = dialog.updated_notes
-        errors = dialog.errors
         CollectionOp(
             parent=browser,
             op=lambda col: col.update_notes(updated_notes),
         ).success(
-            lambda out: on_bulk_updated_notes(browser, errors, len(updated_notes)),
+            lambda out: on_bulk_updated_notes(browser, len(updated_notes)),
         ).run_in_background()
 
 

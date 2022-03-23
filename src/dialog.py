@@ -119,12 +119,27 @@ class BkrsDownloaderDialog(QDialog):
         definition_field_i = self.form.definitionFieldComboBox.currentIndex()
         example_field_i = self.form.exampleFieldComboBox.currentIndex()
         head_tail_word_field_i = self.form.headTailWordFieldComboBox.currentIndex()
+        definition_limit = (
+            self.form.numberOfDefinitionsSpinBox.value()
+            if self.form.numberOfDefinitionsCheckBox.isChecked()
+            else -1
+        )
+        example_limit = (
+            self.form.numberOfExamplesSpinBox.value()
+            if self.form.numberOfExamplesCheckBox.isChecked()
+            else -1
+        )
 
         def on_success(ret):
             if len(self.updated_notes) > 0:
                 self.done(1)
             else:
                 self.done(0)
+
+        def on_failure(exc):
+            self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
+            showWarning(str(exc), parent=self, title=ADDON_NAME)
+            self.done(1)
 
         op = QueryOp(
             parent=self,
@@ -133,6 +148,8 @@ class BkrsDownloaderDialog(QDialog):
                 definition_field_i,
                 example_field_i,
                 head_tail_word_field_i,
+                definition_limit,
+                example_limit,
             ),
             success=on_success,
         )
@@ -143,27 +160,29 @@ class BkrsDownloaderDialog(QDialog):
             immediate=True,
         )
         self.mw.progress.set_title(ADDON_NAME)
+        op.failure(on_failure)
         op.run_in_background()
 
     def _fill_notes(
         self,
-        word_field,
-        definition_field_i,
-        example_field_i,
-        head_tail_word_field_i,
+        word_field: str,
+        definition_field_i: int,
+        example_field_i: int,
+        head_tail_word_field_i: int,
+        definition_limit: int,
+        example_limit: int,
     ):
-        self.errors = []
         self.updated_notes = []
         for note in self.notes:
             word = note[word_field]
             try:
                 need_updating = False
                 if definition_field_i:
-                    definitions = self._get_definitions(word)
+                    definitions = self._get_definitions(word, definition_limit)
                     note[self.field_names[definition_field_i]] = definitions
                     need_updating = True
                 if example_field_i:
-                    examples = self._get_examples(word)
+                    examples = self._get_examples(word, example_limit)
                     note[self.field_names[example_field_i]] = examples
                     need_updating = True
                 if head_tail_word_field_i:
@@ -171,10 +190,6 @@ class BkrsDownloaderDialog(QDialog):
                         self.field_names[head_tail_word_field_i]
                     ] = self._get_head_tail_words(word)
                     need_updating = True
-            except Exception as exc:
-                self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
-                showWarning(str(exc), parent=self, title=ADDON_NAME)
-                return
             finally:
                 if need_updating:
                     self.updated_notes.append(note)
@@ -189,24 +204,20 @@ class BkrsDownloaderDialog(QDialog):
                     )
         self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
 
-    def _get_definitions(self, word: str) -> str:
+    def _get_definitions(self, word: str, definition_limit: int) -> str:
         field_contents = []
         defs = self.bkrs_downloader.get_definitions(word)
         for definition in defs[
-            : self.form.numberOfDefinitionsSpinBox.value()
-            if self.form.numberOfDefinitionsCheckBox.isChecked()
-            else len(defs)
+            : definition_limit if definition_limit != -1 else len(defs)
         ]:
             field_contents.append(definition)
         return "<br>".join(field_contents)
 
-    def _get_examples(self, word: str) -> str:
+    def _get_examples(self, word: str, example_limit: int) -> str:
         field_contents = []
         examples = self.bkrs_downloader.get_examples(word, self.highlight_color)
         for example in examples[
-            : self.form.numberOfExamplesSpinBox.value()
-            if self.form.numberOfExamplesCheckBox.isChecked()
-            else len(examples)
+            : example_limit if example_limit != -1 else len(examples)
         ]:
             field_contents.append(example)
         return "<br>".join(field_contents)
