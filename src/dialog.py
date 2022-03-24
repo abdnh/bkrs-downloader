@@ -131,14 +131,14 @@ class BkrsDownloaderDialog(QDialog):
 
         def on_success(ret):
             if len(self.updated_notes) > 0:
-                self.done(1)
+                self.accept()
             else:
-                self.done(0)
+                self.reject()
 
         def on_failure(exc):
             self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
             showWarning(str(exc), parent=self, title=ADDON_NAME)
-            self.done(1)
+            self.accept()
 
         op = QueryOp(
             parent=self,
