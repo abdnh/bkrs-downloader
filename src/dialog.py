@@ -64,11 +64,14 @@ class BkrsDownloaderDialog(QDialog):
             self.form.numberOfExamplesCheckBox.stateChanged,
             lambda s: self.form.numberOfExamplesSpinBox.setEnabled(s),
         )
-
-        self._fill_fields()
         qconnect(self.form.addButton.clicked, self.on_add)
 
-    def _fill_fields(self):
+    def exec(self) -> int:
+        if self._fill_fields():
+            return super().exec()
+        return QDialog.DialogCode.Rejected
+
+    def _fill_fields(self) -> int:
         mids = set(note.mid for note in self.notes)
         if len(mids) > 1:
             showWarning(
@@ -76,8 +79,7 @@ class BkrsDownloaderDialog(QDialog):
                 parent=self,
                 title=ADDON_NAME,
             )
-            self.done(0)
-            return
+            return 0
         self.field_names = ["None"] + self.notes[0].keys()
         for i, combo in enumerate(self.combos):
             combo.addItems(self.field_names)
@@ -91,6 +93,7 @@ class BkrsDownloaderDialog(QDialog):
                     combo_index, field_index
                 ),
             )
+        return 1
 
     def on_selected_field_changed(self, combo_index, field_index):
         if field_index == 0:
