@@ -172,9 +172,13 @@ class BkrsDownloaderDialog(QDialog):
         example_limit: int,
     ):
         self.updated_notes = []
+        cancel = False
         for note in self.notes:
+            if cancel:
+                break
             word = note[word_field]
             try:
+                # TODO: refactor this
                 need_updating = False
                 if definition_field_i:
                     definitions = self._get_definitions(word, definition_limit)
@@ -192,15 +196,20 @@ class BkrsDownloaderDialog(QDialog):
             finally:
                 if need_updating:
                     self.updated_notes.append(note)
-                    self.mw.taskman.run_on_main(
-                        lambda: self.mw.progress.update(
+
+                    def update_progress():
+                        self.mw.progress.update(
                             label=PROGRESS_LABEL.format(
                                 count=len(self.updated_notes), total=len(self.notes)
                             ),
                             value=len(self.updated_notes),
                             max=len(self.notes),
                         )
-                    )
+                        if self.mw.progress.want_cancel():
+                            nonlocal cancel
+                            cancel = True
+
+                    self.mw.taskman.run_on_main(update_progress)
         self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
 
     def _get_definitions(self, word: str, definition_limit: int) -> str:
