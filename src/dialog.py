@@ -108,10 +108,6 @@ class BkrsDownloaderDialog(QDialog):
         self.mw.addonManager.writeConfig(__name__, self.config)
 
     def on_add(self):
-        if self.form.wordFieldComboBox.currentIndex == 0:
-            self.done(0)
-            return
-
         if self.form.wordFieldComboBox.currentIndex() == 0:
             showWarning("No word field selected.", parent=self, title=ADDON_NAME)
             return
@@ -229,7 +225,6 @@ class BkrsDownloaderDialog(QDialog):
     #     return self.yellowbridge_downloader.get_words_with_same_tail(word)
 
     def _get_head_tail_words(self, word: str) -> str:
-        # <div style="width: 790px; margin: 5px auto;">
         contents = '<div style="width: 790px; margin: 5px auto;">'
         head = self.yellowbridge_downloader.get_words_with_same_head(word)
         tail = self.yellowbridge_downloader.get_words_with_same_tail(word)

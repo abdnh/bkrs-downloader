@@ -29,6 +29,8 @@ class YellowBridgeDownloader(Downloader):
         trs = table.find_all("tr")
         for i in range(1, len(trs), 2):
             trs[i]["style"] = "background: #f8f9f7;"
+        for td in table.select("td:first-of-type"):
+            td["style"] = "white-space: nowrap;"
 
     def get_words_with_same_head(self, word: str) -> str:
         soup = self._get_word_soup(word)
