@@ -1,12 +1,17 @@
 from typing import List
 
+from aqt import qtmajor
 from aqt.qt import *
 from aqt.main import AnkiQt
 from aqt.utils import showWarning
 from anki.notes import Note
 from aqt.operations import QueryOp
 
-from .form import Ui_Dialog
+if qtmajor > 5:
+    from .form_qt6 import Ui_Dialog
+else:
+    from .form_qt5 import Ui_Dialog  # type: ignore
+
 from .consts import *
 from .bkrs_downloader import BkrsDownloader
 from .yellowbridge_downloader import YellowBridgeDownloader
