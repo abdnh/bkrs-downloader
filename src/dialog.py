@@ -136,7 +136,7 @@ class BkrsDownloaderDialog(QDialog):
                 self.reject()
 
         def on_failure(exc):
-            self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
+            self.mw.progress.finish()
             showWarning(str(exc), parent=self, title=ADDON_NAME)
             self.accept()
 
