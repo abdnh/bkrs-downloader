@@ -8,12 +8,12 @@ class YellowBridgeDownloader(Downloader):
     QUERY_URL = f"{BASE_URL}//chinese/dictionary.php?word={{}}"
 
     # def get_words_with_same_head(self, word: str) -> List[str]:
-    #     soup = self._get_word_soup(word)
+    #     soup = self.get_word_soup(word)
     #     table = soup.select("#sameHead tr")
     #     return [row.decode() for row in table]
 
     # def get_words_with_same_tail(self, word: str) -> List[str]:
-    #     soup = self._get_word_soup(word)
+    #     soup = self.get_word_soup(word)
     #     table = soup.select("#sameTail tr")
     #     return [row.decode() for row in table]
 
@@ -33,7 +33,7 @@ class YellowBridgeDownloader(Downloader):
             td["style"] = "white-space: nowrap;"
 
     def get_words_with_same_head(self, word: str) -> str:
-        soup = self._get_word_soup(word)
+        soup = self.get_word_soup(word)
         table = soup.find(id="sameHead")
         if not table:
             return ""
@@ -42,7 +42,7 @@ class YellowBridgeDownloader(Downloader):
         return table.decode()
 
     def get_words_with_same_tail(self, word: str) -> str:
-        soup = self._get_word_soup(word)
+        soup = self.get_word_soup(word)
         table = soup.find(id="sameTail")
         if not table:
             return ""

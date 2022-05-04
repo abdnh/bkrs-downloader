@@ -8,7 +8,7 @@ class BkrsDownloader(Downloader):
     QUERY_URL = f"{BASE_URL}/slovo.php?ch={{}}"
 
     def get_definitions(self, word: str) -> List[str]:
-        soup = self._get_word_soup(word)
+        soup = self.get_word_soup(word)
         ru_el = soup.select_one(".ru")
         defs = []
         if ru_el:
@@ -34,7 +34,7 @@ class BkrsDownloader(Downloader):
         return defs
 
     def get_examples(self, word: str, highlight_color: Optional[str] = None) -> List:
-        soup = self._get_word_soup(word)
+        soup = self.get_word_soup(word)
         # FIXME: this doesn't seem to return example elements in DOM order?!
         divs = soup.select("#examples > div")
         examples = []
