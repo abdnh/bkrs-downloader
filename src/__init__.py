@@ -1,29 +1,25 @@
-from typing import List
 import json
 import random
+from typing import List
 
-
-from aqt.gui_hooks import (
-    browser_menus_did_init,
-    editor_did_init_buttons,
-)
 import aqt
-from aqt.qt import *
 from aqt.browser.browser import Browser
 from aqt.editor import Editor
-from aqt.utils import showText, tooltip, showWarning
+from aqt.gui_hooks import browser_menus_did_init, editor_did_init_buttons
 from aqt.operations import CollectionOp
+from aqt.qt import *
+from aqt.utils import showText, showWarning, tooltip
 
+from .bkrs_downloader import BkrsDownloader
 from .consts import *
 from .dialog import BkrsDownloaderDialog
-from .bkrs_downloader import BkrsDownloader
 from .yellowbridge_downloader import YellowBridgeDownloader
 
 bkrs_downloader = BkrsDownloader()
 yellowbridge_downloader = YellowBridgeDownloader()
 
 
-def on_bulk_updated_notes(browser: Browser, updated_count: int):
+def on_bulk_updated_notes(browser: Browser, updated_count: int) -> None:
     if updated_count:
         tooltip(f"Updated {updated_count} note(s).", parent=browser)
 
@@ -43,15 +39,15 @@ def on_browser_action_triggered(browser: Browser) -> None:
         ).run_in_background()
 
 
-def on_browser_menus_did_init(browser: Browser):
-    a = QAction("Bulk-define using Bkrs Downloader", browser)
-    qconnect(a.triggered, lambda: on_browser_action_triggered(browser))
+def on_browser_menus_did_init(browser: Browser) -> None:
+    action = QAction("Bulk-define using Bkrs Downloader", browser)
+    qconnect(action.triggered, lambda: on_browser_action_triggered(browser))
     browser.form.menuEdit.addSeparator()
-    browser.form.menuEdit.addAction(a)
+    browser.form.menuEdit.addAction(action)
 
 
 def on_editor_button_clicked(editor: Editor, highlight_color: str) -> None:
-    def cb(text: str):
+    def lookup_selection(text: str) -> None:
         text = text.strip()
         if not text:
             return
@@ -66,10 +62,10 @@ def on_editor_button_clicked(editor: Editor, highlight_color: str) -> None:
             else text
         )
         editor.web.eval(
-            "document.execCommand('inserthtml', false, {});".format(json.dumps(example))
+            f"document.execCommand('inserthtml', false, {json.dumps(example)});"
         )
 
-    editor.web.evalWithCallback("getSelection().toString()", cb)
+    editor.web.evalWithCallback("getSelection().toString()", lookup_selection)
 
     #     dialog = BkrsDownloaderDialog(
     #         editor.mw, editor.parentWindow, downloader, [editor.note]
@@ -78,7 +74,7 @@ def on_editor_button_clicked(editor: Editor, highlight_color: str) -> None:
     #         editor.loadNoteKeepingFocus()
 
 
-def on_editor_did_init_buttons(buttons: List[str], editor: Editor):
+def on_editor_did_init_buttons(buttons: List[str], editor: Editor) -> None:
     config = aqt.mw.addonManager.getConfig(__name__)
     shortcut = config["shortcut"]
     button = editor.addButton(

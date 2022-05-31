@@ -18,12 +18,12 @@ class BkrsDownloader(Downloader):
                 # single definition
                 defs.append(ru_el.decode())
             else:
-                for e in divs:
+                for div in divs:
                     # the definition section sometimes contains examples; skip them
-                    if e.select_one(".ex"):
+                    if div.select_one(".ex"):
                         continue
 
-                    text = e.get_text().strip()
+                    text = div.get_text().strip()
                     defs.append(text)
         else:
             # phrase?

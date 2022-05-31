@@ -1,20 +1,21 @@
-from typing import List
+from typing import Any, List
 
-from aqt import qtmajor
-from aqt.qt import *
-from aqt.main import AnkiQt
-from aqt.utils import showWarning
 from anki.notes import Note
+from aqt import qtmajor
+from aqt.main import AnkiQt
 from aqt.operations import QueryOp
+from aqt.qt import *
+from aqt.utils import showWarning
+
+from .bkrs_downloader import BkrsDownloader
+from .consts import *
+from .yellowbridge_downloader import YellowBridgeDownloader
 
 if qtmajor > 5:
-    from .form_qt6 import Ui_Dialog
+    from .forms.form_qt6 import Ui_Dialog
 else:
-    from .form_qt5 import Ui_Dialog  # type: ignore
+    from .forms.form_qt5 import Ui_Dialog  # type: ignore
 
-from .consts import *
-from .bkrs_downloader import BkrsDownloader
-from .yellowbridge_downloader import YellowBridgeDownloader
 
 PROGRESS_LABEL = "Updated {count} out of {total} note(s)"
 
@@ -23,7 +24,7 @@ class BkrsDownloaderDialog(QDialog):
     def __init__(
         self,
         mw: AnkiQt,
-        parent,
+        parent: QWidget,
         bkrs_downloader: BkrsDownloader,
         yellowbridge_downloader: YellowBridgeDownloader,
         notes: List[Note],
@@ -37,6 +38,8 @@ class BkrsDownloaderDialog(QDialog):
         self.config = mw.addonManager.getConfig(__name__)
         self.highlight_color = self.config["highlight_color"].strip()
         self.notes = notes
+        self.field_names: List[str] = []
+        self.updated_notes: List[Note] = []
         self.combos = [
             self.form.wordFieldComboBox,
             self.form.definitionFieldComboBox,
@@ -63,18 +66,18 @@ class BkrsDownloaderDialog(QDialog):
         )
         qconnect(
             self.form.numberOfDefinitionsCheckBox.stateChanged,
-            lambda s: self.form.numberOfDefinitionsSpinBox.setEnabled(s),
+            self.form.numberOfDefinitionsSpinBox.setEnabled,
         )
         qconnect(
             self.form.numberOfExamplesCheckBox.stateChanged,
-            lambda s: self.form.numberOfExamplesSpinBox.setEnabled(s),
+            self.form.numberOfExamplesSpinBox.setEnabled,
         )
         qconnect(self.form.addButton.clicked, self.on_add)
 
     def exec(self) -> int:
         if self._fill_fields():
             return super().exec()
-        return QDialog.DialogCode.Rejected
+        return QDialog.DialogCode.Rejected  # pylint: disable=no-member
 
     def _fill_fields(self) -> int:
         mids = set(note.mid for note in self.notes)
@@ -100,22 +103,22 @@ class BkrsDownloaderDialog(QDialog):
             )
         return 1
 
-    def on_selected_field_changed(self, combo_index, field_index):
+    def on_selected_field_changed(self, combo_index: int, field_index: int) -> None:
         if field_index == 0:
             return
         for i, combo in enumerate(self.combos):
             if i != combo_index and combo.currentIndex() == field_index:
                 combo.setCurrentIndex(0)
 
-    def on_number_of_defs_changed(self, value: int):
+    def on_number_of_defs_changed(self, value: int) -> None:
         self.config["number_of_definitions"] = value
         self.mw.addonManager.writeConfig(__name__, self.config)
 
-    def on_number_of_examples_changed(self, value: int):
+    def on_number_of_examples_changed(self, value: int) -> None:
         self.config["number_of_examples"] = value
         self.mw.addonManager.writeConfig(__name__, self.config)
 
-    def on_add(self):
+    def on_add(self) -> None:
         if self.form.wordFieldComboBox.currentIndex() == 0:
             showWarning("No word field selected.", parent=self, title=ADDON_NAME)
             return
@@ -134,13 +137,13 @@ class BkrsDownloaderDialog(QDialog):
             else -1
         )
 
-        def on_success(ret):
+        def on_success(_: Any) -> None:
             if len(self.updated_notes) > 0:
                 self.accept()
             else:
                 self.reject()
 
-        def on_failure(exc):
+        def on_failure(exc: Exception) -> None:
             self.mw.progress.finish()
             showWarning(str(exc), parent=self, title=ADDON_NAME)
             self.accept()
@@ -175,16 +178,16 @@ class BkrsDownloaderDialog(QDialog):
         head_tail_word_field_i: int,
         definition_limit: int,
         example_limit: int,
-    ):
+    ) -> None:
         self.updated_notes = []
         cancel = False
         for note in self.notes:
             if cancel:
                 break
             word = note[word_field]
+            need_updating = False
             try:
                 # TODO: refactor this
-                need_updating = False
                 if definition_field_i:
                     definitions = self._get_definitions(word, definition_limit)
                     note[self.field_names[definition_field_i]] = definitions
@@ -202,7 +205,7 @@ class BkrsDownloaderDialog(QDialog):
                 if need_updating:
                     self.updated_notes.append(note)
 
-                    def update_progress():
+                    def update_progress() -> None:
                         self.mw.progress.update(
                             label=PROGRESS_LABEL.format(
                                 count=len(self.updated_notes), total=len(self.notes)
@@ -215,7 +218,7 @@ class BkrsDownloaderDialog(QDialog):
                             cancel = True
 
                     self.mw.taskman.run_on_main(update_progress)
-        self.mw.taskman.run_on_main(lambda: self.mw.progress.finish())
+        self.mw.taskman.run_on_main(self.mw.progress.finish)
 
     def _get_definitions(self, word: str, definition_limit: int) -> str:
         field_contents = []

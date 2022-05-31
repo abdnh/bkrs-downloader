@@ -1,5 +1,6 @@
-from urllib.parse import urljoin
 import functools
+from urllib.parse import urljoin
+
 import requests
 from bs4 import BeautifulSoup
 
